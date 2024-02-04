@@ -66,9 +66,9 @@ with open(fname, "r") as f_osu:
                 elif part_hitobjects:
                     hitobjects.append(line.split(","))
 
-utils.eprint(timingpoints)
-utils.eprint(hitobjects)
-utils.eprint(COLUMN_COUNT)
+# utils.eprint(timingpoints)
+# utils.eprint(hitobjects)
+# utils.eprint(COLUMN_COUNT)
 
 COLUMN_COUNT = int(COLUMN_COUNT)
 
