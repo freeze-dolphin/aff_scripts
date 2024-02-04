@@ -1,10 +1,5 @@
 import math
-import sys
-
-
-def eprint(*_args, **kwargs):
-    print(*_args, file=sys.stderr, **kwargs)
-
+from utils import eprint
 
 _SQRT = math.sqrt
 _SIN = math.sin
