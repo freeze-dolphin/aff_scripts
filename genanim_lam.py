@@ -1,5 +1,5 @@
-import math
-from utils import eprint
+from utils import eprint, gen_trace, calc_pos
+from easing import *
 
 _SQRT = math.sqrt
 _SIN = math.sin
@@ -13,93 +13,7 @@ BPM = 175
 FRAME_COUNT = 50
 
 
-def ease_linear(x):
-    return x
-
-
-def ease_in_cubic(x):
-    return x * x * x
-
-
-def ease_out_cubic(x):
-    return 1 - pow(1 - x, 3)
-
-
-def ease_in_sine(x):
-    return 1 - _COS(x * _HALF_PI)
-
-
-def ease_out_sine(x):
-    return _SIN(x * _HALF_PI)
-
-
-def ease_out_quad(x: float) -> float:
-    return 1 - (1 - x) * (1 - x)
-
-
-def ease_in_expo(x: float) -> float:
-    return 0 if x == 0 else math.pow(2, 10 * x - 10)
-
-
-def ease_in_out_back(x):
-    c1 = 1.70158
-    c2 = c1 * 1.525
-    if x < 0.5:
-        return (2 * x ** 2 * ((c2 + 1) * 2 * x - c2)) / 2
-    else:
-        return ((2 * x - 2) ** 2 * ((c2 + 1) * (2 * x - 2) + c2) + 2) / 2
-
-
-def ease_out_bounce(x):
-    n1 = 7.5625
-    d1 = 2.75
-    if x < 1 / d1:
-        return n1 * x * x
-    elif x < 2 / d1:
-        x -= 1.5 / d1
-        return n1 * x * x + 0.75
-    elif x < 2.5 / d1:
-        x -= 2.25 / d1
-        return n1 * x * x + 0.9375
-    else:
-        x -= 2.625 / d1
-        return n1 * x * x + 0.984375
-
-
-def calc_pos(a, b, op):
-    """
-    a: 二元组
-    b: 数字, 用于对 a 进行修改
-
-    函数接受两个二元组 a, b 和一个字符串类型的操作符 op
-    将 a 中的每一项以 op 操作符与 b 中的每一项分别进行运算
-    将两次运算的结果以二元组类型返回
-    """
-    if isinstance(b, (float, int)):
-        b = (b, b)
-
-    if op == "+":
-        return a[0] + b[0], a[1] + b[1]
-    elif op == "-":
-        return a[0] - b[0], a[1] - b[1]
-    elif op == "*":
-        return a[0] * b[0], a[1] * b[1]
-    elif op == "/":
-        return a[0] / b[0], a[1] / b[1]
-
-
-def genarc(t, a, b):
-    """
-    t: 时间, ms
-    a: 二元组, 分别表示起始和结束时的横坐标
-    b: 二元组, 分别表示起始和结束时的纵坐标
-
-    生成一条直线黑线
-    """
-    return f"  arc({t:.0f},{t:.0f},{a[0]:.2f},{b[0]:.2f},s,{a[1]:.2f},{b[1]:.2f},0,none,true);"
-
-
-def gentiming(t, b):
+def gen_timing(t, b):
     """
     t: 时间, ms
     b: 数字, bpm
@@ -121,7 +35,7 @@ def min_positive_angle(angle):
     return angle
 
 
-def genarcs(t, r, x, y, angle=0, extra=0):
+def gen_arcs(t, r, x, y, angle=0, extra=0):
     """
     t: 时间, ms
     r: 数字, 半径, 从菱形的中心到四个角的距离
@@ -154,10 +68,10 @@ def genarcs(t, r, x, y, angle=0, extra=0):
         left = (x - h1, y - l1 * 2)
 
         arcs = [
-            genarc(t, top, right),
-            genarc(t, right, bottom),
-            genarc(t, bottom, left),
-            genarc(t, left, top),
+            gen_trace(t, top, right),
+            gen_trace(t, right, bottom),
+            gen_trace(t, bottom, left),
+            gen_trace(t, left, top),
         ]
     elif extra == 1:
         top = (x - l1, y + h1 * 2)
@@ -165,9 +79,9 @@ def genarcs(t, r, x, y, angle=0, extra=0):
         left = (x - h3, y - l3 * 2)
 
         arcs = [
-            genarc(t, top, right),
-            genarc(t, right, left),
-            genarc(t, left, top),
+            gen_trace(t, top, right),
+            gen_trace(t, right, left),
+            gen_trace(t, left, top),
         ]
     elif extra == 2:
         left = (x - h4, y + l4 * 2)
@@ -176,11 +90,11 @@ def genarcs(t, r, x, y, angle=0, extra=0):
         bottom_right = (x + l6, y - h6 * 2)
         bottom_left = (x - l7, y - h7 * 2)
         arcs = [
-            genarc(t, left, top),
-            genarc(t, top, right),
-            genarc(t, right, bottom_right),
-            genarc(t, bottom_right, bottom_left),
-            genarc(t, bottom_left, left),
+            gen_trace(t, left, top),
+            gen_trace(t, top, right),
+            gen_trace(t, right, bottom_right),
+            gen_trace(t, bottom_right, bottom_left),
+            gen_trace(t, bottom_left, left),
         ]
     else:
         arcs = []
@@ -188,7 +102,7 @@ def genarcs(t, r, x, y, angle=0, extra=0):
     return arcs
 
 
-def genframe(
+def gen_frame(
         show_timing, hide_timing, radius, position, angle=0.0, extra_note_offset=0, extra=0
 ):
     """
@@ -202,18 +116,18 @@ def genframe(
     show_timing = int(show_timing)
     hide_timing = int(hide_timing)
     _result = [
-                  gentiming(0, BPM),
-                  gentiming(show_timing - 1, -BPM * NOTE_OFFSET),
-                  gentiming(show_timing, 0),
-                  gentiming(hide_timing - 1, -BPM * NOTE_OFFSET),
-                  gentiming(hide_timing, BPM),
-              ] + genarcs(
+                  gen_timing(0, BPM),
+                  gen_timing(show_timing - 1, -BPM * NOTE_OFFSET),
+                  gen_timing(show_timing, 0),
+                  gen_timing(hide_timing - 1, -BPM * NOTE_OFFSET),
+                  gen_timing(hide_timing, BPM),
+              ] + gen_arcs(
         hide_timing + NOTE_OFFSET + extra_note_offset, radius, *position, angle, extra
     )
     return _result
 
 
-def genfirstframe(hide_timing, radius, position):
+def gen_firstframe(hide_timing, radius, position):
     """
     三个参数同函数 genframe 中的解释
 
@@ -221,14 +135,14 @@ def genfirstframe(hide_timing, radius, position):
     """
     hide_timing = int(hide_timing)
     _result = [
-                  gentiming(0, BPM),  # 这一条 gentiming 被注释, 参考 423 - 424 行的注解
-                  gentiming(hide_timing - 1, -BPM * NOTE_OFFSET),
-                  gentiming(hide_timing, BPM),
-              ] + genarcs(hide_timing + NOTE_OFFSET, radius, *position, 0, 0)
+                  gen_timing(0, BPM),  # 这一条 gentiming 被注释, 参考 423 - 424 行的注解
+                  gen_timing(hide_timing - 1, -BPM * NOTE_OFFSET),
+                  gen_timing(hide_timing, BPM),
+              ] + gen_arcs(hide_timing + NOTE_OFFSET, radius, *position, 0, 0)
     return _result
 
 
-def genanim(
+def gen_anim(
         timing,  # 时间
         duration,  # 过程
         start_radius,  # 起始时的动画半径
@@ -273,12 +187,12 @@ def genanim(
 
         # 根据参数 showFirstFrame 判断是否显示第一帧, 此选项的作用稍后介绍
         if i == 0 and show_first_frame:
-            _result += genfirstframe(timing, radius, position)
+            _result += gen_firstframe(timing, radius, position)
         else:
             nextprogress = (i + 1) / (real_frame_count - 1.0)
             _timing = timing + duration * progress
             _nextTiming = timing + duration * nextprogress
-            _result += genframe(
+            _result += gen_frame(
                 _timing,
                 _nextTiming,
                 radius,
@@ -320,10 +234,10 @@ args = [
 
 PER_OFFSET = 5
 
-for args in args:
-    result += genanim(*args)
+for arg in args:
+    result += gen_anim(*arg)
 
 print("AudioOffset:0\n-")
-print(gentiming(0, BPM).strip())
+print(gen_timing(0, BPM).strip())
 
 print("\n".join(result))
