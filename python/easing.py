@@ -63,3 +63,7 @@ def ease_out_bounce(x):
     else:
         x -= 2.625 / d1
         return n1 * x * x + 0.984375
+
+
+def ease_out_expo(x: float) -> float:
+    return 1 if x == 1 else 1 - math.pow(2, -10 * x)
