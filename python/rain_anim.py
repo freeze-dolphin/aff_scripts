@@ -110,22 +110,40 @@ def gen_anim(
     return _result
 
 
-def gen_rain(_timings,  # 下雨时间, 即动画生成的时间段
-             _side_overlapping,  # 两边雨滴层数
-             _mid_overlapping,  # 中间雨滴层数
-             _x_left_rng,  # 左边下雨的 x 范围
-             _x_right_rng,  # 右边下雨的 x 范围
-             _x_mid_rng,  # 中间下雨的 x 范围
-             _y_rng,  # 下雨的 y 范围 (定义天空)
-             _z_rng,  # 下雨的 前后 z 范围
-             _duration_rng,  # 每个雨滴的持续时间范围
-             _radians,  # 雨滴倾斜角度的弧度制
-             _easing_function,  # 缓动函数
-             _small_droplet_ratio,  # 下小雨滴的概率
-             _small_droplet_length_rng,  # 小雨滴的长度范围
-             _large_droplet_length_rng,  # 大雨滴的长度范围
-             _swap_start_and_end_position,  # 反转雨滴起落
+def gen_rain(_timings,
+             _side_overlapping,
+             _mid_overlapping,
+             _x_left_rng,
+             _x_right_rng,
+             _x_mid_rng,
+             _y_rng,
+             _z_rng,
+             _duration_rng,
+             _radians,
+             _easing_function,
+             _small_droplet_ratio,
+             _small_droplet_length_rng,
+             _large_droplet_length_rng,
+             _swap_start_and_end_position,
              ):
+    """
+    _timings: 下雨时间, 即动画生成的时间段
+    _side_overlapping: 两边雨滴层数
+    _mid_overlapping: 中间雨滴层数
+    _x_left_rng: 左边下雨的 x 范围
+    _x_right_rng: 右边下雨的 x 范围
+    _x_mid_rng: 中间下雨的 x 范围
+    _y_rng: 下雨的 y 范围 (定义天空)
+    _z_rng: 下雨的 前后 z 范围
+    _duration_rng: 每个雨滴的持续时间范围
+    _radians: 雨滴倾斜角度的弧度制
+    _easing_function: 缓动函数
+    _small_droplet_ratio: 下小雨滴的概率
+    _small_droplet_length_rng: 小雨滴的长度范围
+    _large_droplet_length_rng: 大雨滴的长度范围
+    _swap_start_and_end_position: 反转雨滴起落
+    """
+
     timings = range(*_timings, 20)
 
     _x_offset = math.tan(_radians) * (sum(_y_rng) / 2)
@@ -161,7 +179,7 @@ def gen_rain(_timings,  # 下雨时间, 即动画生成的时间段
             rnd.randint(*_duration_rng),
             _start_pos,
             _end_pos,
-            ease_linear,
+            _easing_function,
             rnd.randint(*_z_rng),
             overlapping,
             _radians,
