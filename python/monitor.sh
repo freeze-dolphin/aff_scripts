@@ -21,3 +21,4 @@ inotifywait -m -e "$EVENTS" "${TARGET}.py" | while read -r _ action _; do
         switch=1
     fi
 done
+
