@@ -8,9 +8,9 @@ _COS = math.cos
 _PI = 3.14159265
 _HALF_PI = 1.57079633
 
-NOTE_OFFSET = 150000
-BPM = 175
-FRAME_COUNT = 50
+NOTE_OFFSET = 223709
+BPM = 130
+FRAME_COUNT = 60
 
 
 def gen_timing(t, b):
@@ -117,28 +117,13 @@ def gen_frame(
     hide_timing = int(hide_timing)
     _result = [
                   gen_timing(0, BPM),
-                  gen_timing(show_timing - 1, -BPM * NOTE_OFFSET),
+                  gen_timing(show_timing - 1, -BPM * NOTE_OFFSET - extra_note_offset),
                   gen_timing(show_timing, 0),
-                  gen_timing(hide_timing - 1, -BPM * NOTE_OFFSET),
+                  gen_timing(hide_timing - 1, -BPM * NOTE_OFFSET - extra_note_offset),
                   gen_timing(hide_timing, BPM),
               ] + gen_arcs(
         hide_timing + NOTE_OFFSET + extra_note_offset, radius, *position, angle, extra
     )
-    return _result
-
-
-def gen_firstframe(hide_timing, radius, position):
-    """
-    三个参数同函数 genframe 中的解释
-
-    此函数仅被调用一次, 用于
-    """
-    hide_timing = int(hide_timing)
-    _result = [
-                  gen_timing(0, BPM),  # 这一条 gentiming 被注释, 参考 423 - 424 行的注解
-                  gen_timing(hide_timing - 1, -BPM * NOTE_OFFSET),
-                  gen_timing(hide_timing, BPM),
-              ] + gen_arcs(hide_timing + NOTE_OFFSET, radius, *position, 0, 0)
     return _result
 
 
@@ -150,7 +135,6 @@ def gen_anim(
         start_position,  # 起始时的动画位置
         end_position,  # 结束时的动画位置
         easing_function,  # 缓动函数
-        show_first_frame,  # 是否显示第一帧
         extra_note_offset,
         extra,
 ):
@@ -185,22 +169,18 @@ def gen_anim(
             "+",  # 使原始 (x, y) 两项分别加上经过缓动函数处理后的偏移量 (Δax, Δay) 的两项, 结果是为当前坐标 (cx, cy), 这个当前坐标在下一步用于生成当前帧动画内容
         )
 
-        # 根据参数 showFirstFrame 判断是否显示第一帧, 此选项的作用稍后介绍
-        if i == 0 and show_first_frame:
-            _result += gen_firstframe(timing, radius, position)
-        else:
-            nextprogress = (i + 1) / (real_frame_count - 1.0)
-            _timing = timing + duration * progress
-            _nextTiming = timing + duration * nextprogress
-            _result += gen_frame(
-                _timing,
-                _nextTiming,
-                radius,
-                position,
-                progress * 360,
-                extra_note_offset,
-                extra,
-            )
+        nextprogress = (i + 1) / (real_frame_count - 1.0)
+        _timing = timing + duration * progress
+        _nextTiming = timing + duration * nextprogress
+        _result += gen_frame(
+            _timing,
+            _nextTiming,
+            radius,
+            position,
+            0,  # progress * 360,
+            extra_note_offset,
+            extra,
+        )
 
         _result.append("};")
     return _result
@@ -210,29 +190,21 @@ result = []
 
 # 开始时间, 结束时间, 开始半径, 结束半径, 开始坐标, 结束坐标, 缓动函数, 是否显示第一帧
 
-t_st = list(range(700, 10000, 150))
-t_dur = 1000
-
-for _t in range(6):
-    t_st[_t] += _t * 100
-    eprint(t_st[_t])
-
 args = [
-    (t_st[0], t_dur, 0.0, 0.45, (0, 1), (1, 1), ease_out_sine, False, 10, 0),
-    (t_st[1], t_dur, 0.0, 0.45, (0, 1), (1, 1), ease_out_sine, False, 20, 0),
-    (t_st[2], t_dur, 0.0, 0.45, (0, 1), (1, 1), ease_out_sine, False, 30, 1),
-    (t_st[3], t_dur, 0.0, 0.45, (0, 1), (1, 1), ease_out_sine, False, 40, 1),
-    (t_st[4], t_dur, 0.0, 0.45, (0, 1), (1, 1), ease_out_sine, False, 50, 2),
-    (t_st[5], t_dur, 0.0, 0.45, (0, 1), (1, 1), ease_out_sine, False, 60, 2),
-    (t_st[0] + t_dur, 2000, 0.45, 0.3, (1, 1), (1, 1), ease_linear, False, 10, 0),
-    (t_st[1] + t_dur, 2000, 0.45, 0.3, (1, 1), (1, 1), ease_linear, False, 20, 0),
-    (t_st[2] + t_dur, 2000, 0.45, 0.3, (1, 1), (1, 1), ease_linear, False, 30, 1),
-    (t_st[3] + t_dur, 2000, 0.45, 0.3, (1, 1), (1, 1), ease_linear, False, 40, 1),
-    (t_st[4] + t_dur, 2000, 0.45, 0.3, (1, 1), (1, 1), ease_linear, False, 50, 2),
-    (t_st[5] + t_dur, 2000, 0.45, 0.3, (1, 1), (1, 1), ease_linear, False, 60, 2),
+    (180922, 1846, 0.0, 5.0, (0.5, 1), (0.5, 1), ease_in_cubic, 10, 0)
+    # (t_st[0], t_dur, 0.0, 0.45, (0, 1), (1, 1), ease_out_sine, 10, 0),
+    # (t_st[1], t_dur, 0.0, 0.45, (0, 1), (1, 1), ease_out_sine, 20, 0),
+    # (t_st[2], t_dur, 0.0, 0.45, (0, 1), (1, 1), ease_out_sine, 30, 1),
+    # (t_st[3], t_dur, 0.0, 0.45, (0, 1), (1, 1), ease_out_sine, 40, 1),
+    # (t_st[4], t_dur, 0.0, 0.45, (0, 1), (1, 1), ease_out_sine, 50, 2),
+    # (t_st[5], t_dur, 0.0, 0.45, (0, 1), (1, 1), ease_out_sine, 60, 2),
+    # (t_st[0] + t_dur, 2000, 0.45, 0.3, (1, 1), (1, 1), ease_linear, 10, 0),
+    # (t_st[1] + t_dur, 2000, 0.45, 0.3, (1, 1), (1, 1), ease_linear, 20, 0),
+    # (t_st[2] + t_dur, 2000, 0.45, 0.3, (1, 1), (1, 1), ease_linear, 30, 1),
+    # (t_st[3] + t_dur, 2000, 0.45, 0.3, (1, 1), (1, 1), ease_linear, 40, 1),
+    # (t_st[4] + t_dur, 2000, 0.45, 0.3, (1, 1), (1, 1), ease_linear, 50, 2),
+    # (t_st[5] + t_dur, 2000, 0.45, 0.3, (1, 1), (1, 1), ease_linear, 60, 2),
 ]
-
-PER_OFFSET = 5
 
 for arg in args:
     result += gen_anim(*arg)
