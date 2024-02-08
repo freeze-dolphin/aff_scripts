@@ -121,11 +121,11 @@ def get_type(_hitobject) -> str:
 
 
 def get_note_time(_hitobject) -> int:
-    return int(_hitobject[2])
+    return int(float(_hitobject[2]))
 
 
 def get_hold_time(_hitobject) -> (int, int):
-    return int(_hitobject[2]), int(_hitobject[5].split(":")[0])
+    return int(float(_hitobject[2])), int(float(_hitobject[5].split(":")[0]))
 
 
 result = ["AudioOffset:0", "-"]
@@ -136,7 +136,7 @@ for timingpoint in timingpoints:
     if timingpoint[6] == "1":
         timingpoint_inherit = timingpoint
         result.append(gen_timing(
-            int(timingpoint[0]),
+            int(float(timingpoint[0])),
             calc_bpm(timingpoint),
             float(timingpoint[2])
         ))

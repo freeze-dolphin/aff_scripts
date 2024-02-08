@@ -14,7 +14,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     implementation(libs.guava)
-    implementation("com.github.freeze-dolphin:aff-compose:302a6020c3")
+    implementation("com.github.freeze-dolphin:aff-compose:7c1cc0d25c")
 }
 
 java {
@@ -24,7 +24,7 @@ java {
 }
 
 application {
-    mainClass = "io.sn.affproc.Main"
+    mainClass = "io.sn.affproc.MainKt"
 }
 
 tasks.named<Test>("test") {
