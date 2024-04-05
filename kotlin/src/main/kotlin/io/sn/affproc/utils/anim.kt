@@ -2,7 +2,21 @@ package io.sn.affproc.utils
 
 import com.tairitsu.compose.arcaea.Difficulty
 import com.tairitsu.compose.arcaea.*
-import io.sn.affproc.objects.AnimationBasicConfigurtion
+import io.sn.affproc.objects.animcfg.AnimationBasicConfigurtion
+import io.sn.affproc.objects.animcfg.AnimationConfiguration
+
+fun Difficulty.addAnimation(animCfg: AnimationConfiguration) {
+    this.addAnimation(
+        animCfg.basicCfg,
+        animCfg.startTiming,
+        animCfg.duration,
+        animCfg.radius,
+        animCfg.position,
+        animCfg.extraNoteOffset,
+        animCfg.generateArcNotes,
+        animCfg.extra
+    )
+}
 
 /**
  * @param basicCfg: control the quality and speed of this animation
@@ -16,7 +30,7 @@ import io.sn.affproc.objects.AnimationBasicConfigurtion
  *        generateArcNotes(
  *             hideTiming: Long,
  *             radius: Double,
- *             position: Pair<Double, Double>,
+ *             position: Position,
  *             progress: Double,
  *             extraNoteOffset: Long,
  *             extra: Any?,
@@ -62,7 +76,7 @@ fun Difficulty.addAnimation(
         val hideTiming: Long = startTiming + (duration * nextProgress).toLong()
 
         timingGroup {
-            addSpecialEffect(TimingGroupSpecialEffect.NO_INPUT)
+            addSpecialEffect(TimingGroupSpecialEffectType.NO_INPUT)
             timing(0, basicCfg.bpm, 999)
             timing(showTiming - 1, -basicCfg.bpm * basicCfg.noteOffset, 999)
             timing(showTiming, 0, 999)

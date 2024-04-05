@@ -1,7 +1,6 @@
 package io.sn.affproc.utils
 
-import com.tairitsu.compose.arcaea.ArcNote
-import java.io.Serializable
+import com.tairitsu.compose.arcaea.*
 
 fun genTrace(timing: Long, endTiming: Long, startPosition: Position, endPosition: Position): ArcNote {
     return ArcNote(timing, endTiming, startPosition.toPair(), ArcNote.Type.S, endPosition.toPair(), ArcNote.Color.BLUE, true) {}
@@ -11,19 +10,8 @@ fun genAnimationTrace(timing: Long, startPosition: Position, endPosition: Positi
     return genTrace(timing, timing, startPosition, endPosition)
 }
 
-data class Position(
-    var x: Double,
-    var y: Double,
-) : Serializable {
-
-    /**
-     * Returns string representation of the [Position] including its [x] and [y] values.
-     */
-    override fun toString(): String = "($x, $y)"
-
-    fun toList(): List<Double> = listOf(x, y)
-
-    fun toPair(): Pair<Double, Double> = x to y
+fun Difficulty.quickArctap(time: Number, position: Position): Note {
+    return arcNote(time.toLong() - 1, time.toLong(), position.toPair(), this.s, position.toPair()) {
+        arctap(time.toInt())
+    }
 }
-
-infix fun <A : Number, B : Number> A.pos(that: B): Position = Position(this.toDouble(), that.toDouble())

@@ -1,6 +1,8 @@
 package io.sn.affproc.implementations
 
 import com.tairitsu.compose.arcaea.ArcNote
+import com.tairitsu.compose.arcaea.Position
+import com.tairitsu.compose.arcaea.pos
 import io.sn.affproc.utils.*
 import kotlin.math.abs
 
@@ -11,9 +13,9 @@ val ddddddGetFrame = fun(
     _: Position,
     progress: Double,
     extraNoteOffset: Long,
-    extra: Any?,
+    _: Any?,
 ): List<ArcNote> {
-    val mutableList = mutableListOf<ArcNote>()
+    val noteList = mutableListOf<ArcNote>()
 
     val offset = ((1 - easeInQuad(progress)) * 100).toLong() - extraNoteOffset * 3 / 4
 
@@ -38,7 +40,7 @@ val ddddddGetFrame = fun(
     val downEnd = d.x pos d.y - edge
 
     if (progress < 0.75 || !flash(progress)) {
-        mutableList.addAll(
+        noteList.addAll(
             listOf(
                 genAnimationTrace(hideTiming + offset, a, b),
                 genAnimationTrace(hideTiming + offset, b, c),
@@ -61,7 +63,7 @@ val ddddddGetFrame = fun(
         )
     }
 
-    return mutableList
+    return noteList
 }
 
 fun flash(x: Double): Boolean {

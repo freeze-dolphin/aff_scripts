@@ -1,4 +1,4 @@
-package io.sn.affproc.objects
+package io.sn.affproc.objects.animcfg
 
 data class AnimationBasicConfigurtion(
 

@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.jvm)
-    application
 }
 
 repositories {
@@ -14,17 +13,13 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     implementation(libs.guava)
-    implementation("com.github.freeze-dolphin:aff-compose:7c1cc0d25c")
+    implementation("com.github.freeze-dolphin:aff-compose:cef7fbdb5a")
 }
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
-}
-
-application {
-    mainClass = "io.sn.affproc.MainKt"
 }
 
 tasks.named<Test>("test") {
