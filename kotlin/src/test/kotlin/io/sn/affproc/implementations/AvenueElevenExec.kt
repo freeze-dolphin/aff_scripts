@@ -12,7 +12,7 @@ class AvenueElevenExec {
     fun noteTeleport() {
         mapSet {
             difficulties.future {
-                chart.audioOffset = -660
+                chart.configuration.tuneOffset(-660)
                 timing(
                     offset = 0,
                     bpm = 126,
@@ -21,7 +21,7 @@ class AvenueElevenExec {
 
                 val globalOffset = 260279L
 
-                if (false) {
+                comment {
                     holdNote(17140, 18807, 4)
                     arcNote(17140, 19045, 0.0 to 1.0, si, 1.0 to 1.0) {
                         arctap(17140)
@@ -85,10 +85,31 @@ class AvenueElevenExec {
     }
 
     @Test
+    fun traceCollapse() {
+        mapSet {
+            difficulties.future {
+                chart.configuration.tuneOffset(-660)
+                timing(
+                    offset = 0,
+                    bpm = 126,
+                    beats = 4,
+                )
+
+                timingGroup {
+                    timing(0, 126, 4)
+                    genCollapseTraceGroup(1000, 3000, 1 pos 0, 1 pos 0, 50, easeOutSine, 0.004, 0.0008).forEach {
+                        addArcNote(it)
+                    }
+                }
+            }
+        }.writeToFolder(File(File("."), "result"))
+    }
+
+    @Test
     fun noteJump() {
         mapSet {
             difficulties.beyond {
-                chart.audioOffset = -660
+                chart.configuration.tuneOffset(-660)
                 timing(
                     offset = 0,
                     bpm = 126,
@@ -97,33 +118,98 @@ class AvenueElevenExec {
 
                 val globalOffset = 260279L
 
-                val animBasicCfg = AnimationBasicConfigurtion(120, bpm.toDouble(), globalOffset + 1)
+                val animBasicCfg = AnimationBasicConfigurtion(240, 126.toDouble(), globalOffset + 1)
 
-                /*
-                - jump from 89047 (-0.50,0.00) to 89523 (1.50,0.00)
-                - jump from 89285 (-0.50,0.00) to 89523 (-0.50,0.00)
-                 */
-
-                addAnimation(
-                    animBasicCfg,
+                val timingList = listOf<Long>(
+                    78095,
+                    78571,
+                    79047,
+                    79523,
+                    80000,
+                    80476,
+                    80952,
+                    81428,
+                    81904,
+                    82380,
+                    82857,
+                    83333,
+                    83809,
+                    84285,
+                    84761,
+                    85238,
+                    85714,
+                    85952,
+                    86190,
+                    86428,
+                    86666,
+                    86904,
+                    87142,
+                    87380,
+                    87619,
+                    87857,
+                    88095,
+                    88333,
+                    88571,
+                    88809,
                     89047,
-                    89523 - 89047,
-                    Triple(1.0, 1.0, linear), // not used
-                    Triple(-0.5 pos 0.0, -0.5 pos 0.0, linear),
-                    0,
-                    avenueElevenNoteJumpGetFrame,
-                    1.5 pos 0.0
+                    89285
                 )
-                addAnimation(
-                    animBasicCfg,
-                    89285,
-                    89523 - 89285,
-                    Triple(1.0, 1.0, linear), // not used
-                    Triple(-0.5 pos 0.0, -0.5 pos 0.0, linear),
-                    0,
-                    avenueElevenNoteJumpGetFrame,
-                    -0.5 pos 0.0
+
+                val positionList = listOf(
+                    -0.25,
+                    0.25,
+                    0.75,
+                    1.25,
+                    1.25,
+                    0.75,
+                    0.25,
+                    -0.25,
+                    0.75,
+                    0.25,
+                    1.25,
+                    -0.25,
+                    0.75,
+                    0.25,
+                    1.25,
+                    -0.25,
+                    0.75,
+                    0.75,
+                    0.25,
+                    0.25,
+                    1.00,
+                    1.00,
+                    0.0,
+                    0.0,
+                    1.25,
+                    1.25,
+                    -0.25,
+                    -0.25,
+                    1.5,
+                    1.5,
+                    -0.5,
+                    -0.5
                 )
+
+                repeat(timingList.size - 1) {
+                    if (timingList[it + 1] == -1L || timingList[it] == -1L) {
+                        return@repeat
+                    }
+
+                    if (it == 16) {
+                        ARCAEA_COORD_SYSTEM_ZOOM_CONSTANT = 700
+                    }
+
+                    addAnimation(
+                        animBasicCfg,
+                        timingList[it],
+                        timingList[it + 1] - timingList[it],
+                        Triple(1.0, 1.0, linear), // not used
+                        Triple(positionList[it] pos 0, positionList[it] pos 0, linear),
+                        0,
+                        avenueElevenNoteJumpGetFrame,
+                        positionList[it + 1] pos 0
+                    )
+                }
             }
         }.writeToFolder(File(File("."), "result"))
     }

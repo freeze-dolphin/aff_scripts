@@ -72,9 +72,9 @@ with open(fname, "r") as f_osu:
 
 COLUMN_COUNT = int(COLUMN_COUNT)
 
-if len(timingpoints) == 0 or len(hitobjects) == 0:
-    utils.eprint("[E] Unable to parse beatmap")
-    sys.exit(1)
+#if len(timingpoints) == 0 or len(hitobjects) == 0:
+#    utils.eprint("[E] Unable to parse beatmap")
+#    sys.exit(1)
 
 
 # --------------------------------------------------------------
@@ -127,8 +127,9 @@ def get_note_time(_hitobject) -> int:
 def get_hold_time(_hitobject) -> (int, int):
     return int(float(_hitobject[2])), int(float(_hitobject[5].split(":")[0]))
 
+base_timing = int(float(timingpoints[0][0]))
 
-result = ["AudioOffset:0", "-"]
+result = [f"AudioOffset:{base_timing}", "-"]
 
 timingpoint_inherit = None
 
@@ -136,13 +137,13 @@ for timingpoint in timingpoints:
     if timingpoint[6] == "1":
         timingpoint_inherit = timingpoint
         result.append(gen_timing(
-            int(float(timingpoint[0])),
+            int(float(timingpoint[0])) - base_timing,
             calc_bpm(timingpoint),
             float(timingpoint[2])
         ))
     else:
         result.append(gen_timing(
-            int(timingpoint[0]),
+            int(timingpoint[0]) - base_timing,
             calc_bpm(timingpoint_inherit),
             float(timingpoint_inherit[2])
         ))
@@ -152,13 +153,13 @@ for hitobject in hitobjects:
 
     if note_type == "note":
         result.append(
-            gen_note(get_note_time(hitobject),
+            gen_note(get_note_time(hitobject) - base_timing,
                      calc_lane(hitobject))
         )
     elif note_type == "hold":
         t1, t2 = get_hold_time(hitobject)
         result.append(
-            gen_hold(t1,
+            gen_hold(t1 - base_timing,
                      t2,
                      calc_lane(hitobject))
         )

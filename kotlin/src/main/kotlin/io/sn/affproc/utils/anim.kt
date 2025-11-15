@@ -92,6 +92,7 @@ fun Difficulty.addAnimation(
             ).forEach {
                 addArcNote(it)
             }
+            printToConsole()
         }
     }
 }

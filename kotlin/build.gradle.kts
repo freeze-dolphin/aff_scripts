@@ -1,6 +1,10 @@
 plugins {
     alias(libs.plugins.jvm)
+    id("io.ktor.plugin") version "2.3.10"
+    id("com.autonomousapps.dependency-analysis") version "1.31.0"
 }
+
+val affComposeVersion = "8d463ccf1d"
 
 repositories {
     mavenCentral()
@@ -8,12 +12,12 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation(libs.junit.jupiter.engine)
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    implementation(libs.guava)
-    implementation("com.github.freeze-dolphin:aff-compose:cef7fbdb5a")
+    implementation("com.github.freeze-dolphin:aff-compose:${affComposeVersion}")
 }
 
 java {

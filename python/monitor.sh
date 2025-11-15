@@ -11,7 +11,7 @@ inotifywait -m -e "$EVENTS" "${TARGET}.py" | while read -r _ action _; do
         echo "[I] Detected $action on target $TARGET - $(date +"%T")"
         if [[ -e "./args/$TARGET" ]]; then
             echo "[I] Generating from template args..."
-            python "${TARGET}.py" < "./args/${TARGET}" > "result/${TARGET}.aff"
+            python3 "${TARGET}.py" < "./args/${TARGET}" > "result/${TARGET}.aff"
             echo "[I] Generated"
         else
             echo "[E] Argument template not exist" >&2
@@ -21,4 +21,3 @@ inotifywait -m -e "$EVENTS" "${TARGET}.py" | while read -r _ action _; do
         switch=1
     fi
 done
-

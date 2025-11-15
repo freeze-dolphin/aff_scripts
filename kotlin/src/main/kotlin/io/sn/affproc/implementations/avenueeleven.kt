@@ -3,8 +3,12 @@ package io.sn.affproc.implementations
 import com.tairitsu.compose.arcaea.ArcNote
 import com.tairitsu.compose.arcaea.Position
 import com.tairitsu.compose.arcaea.toPosition
-import io.sn.affproc.utils.easeOutCubic
+import io.sn.affproc.utils.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 val avenueElevenNoteTeleportGetFrame = fun(
     hideTiming: Long,
@@ -16,19 +20,17 @@ val avenueElevenNoteTeleportGetFrame = fun(
 ): List<ArcNote> {
     val offset = easeOutCubic(progress) * duration as Long / 2
 
-    return listOf(
-        ArcNote(
-            (hideTiming + offset - 1).toLong(),
-            (hideTiming + offset).toLong(),
-            position.toPair(),
-            ArcNote.Type.S,
-            position.toPair(),
-            ArcNote.Color.BLUE,
-            true
-        ) {
-            arctap((hideTiming + offset).toInt())
-        }
-    )
+    return listOf(ArcNote(
+        (hideTiming + offset - 1).toLong(),
+        (hideTiming + offset).toLong(),
+        position.toPair(),
+        ArcNote.Type.S,
+        position.toPair(),
+        ArcNote.Color.BLUE,
+        true
+    ) {
+        arctap((hideTiming + offset).toInt())
+    })
 
 }
 
@@ -46,26 +48,17 @@ val avenueElevenNoteJumpGetFrame = fun(
 
     println(offset)
 
-    return listOf(
-        ArcNote(
-            (hideTiming + offset - 1),
-            (hideTiming + offset),
-            currentCoord.toPosition().apply {
-                y = 0.0
-            },
-            ArcNote.Type.S,
-            currentCoord.toPosition().apply {
-                y = 0.0
-            },
-            ArcNote.Color.BLUE,
-            true
-        ) {
-            arctap((hideTiming + offset).toInt())
-        }
-    )
+    return listOf(ArcNote((hideTiming + offset - 1), (hideTiming + offset), currentCoord.toPosition().apply {
+        y = 0.0
+    }, ArcNote.Type.S, currentCoord.toPosition().apply {
+        y = 0.0
+    }, ArcNote.Color.BLUE, true
+    ) {
+        arctap((hideTiming + offset).toInt())
+    })
 }
 
-private const val ARCAEA_COORD_SYSTEM_ZOOM_CONSTANT = 1000
+var ARCAEA_COORD_SYSTEM_ZOOM_CONSTANT = 2000
 
 private data class NoteInfo(var xInArcCoordSystem: Double, val distanceBetweenNoteAndJudge: Double) {
     val x: Long = (xInArcCoordSystem * ARCAEA_COORD_SYSTEM_ZOOM_CONSTANT).toLong()
@@ -85,4 +78,102 @@ private fun getParabolaCoordinateAtTime(a: NoteInfo, b: NoteInfo, progress: Doub
     val y = a.y + (b.y - a.y) * progress - 0.5 * g * t * t * progress * progress
 
     return Pair(x / ARCAEA_COORD_SYSTEM_ZOOM_CONSTANT, y)
+}
+
+fun genCollapseTraceGroup(
+    startTiming: Long,
+    endTiming: Long,
+    startPos: Position,
+    endPos: Position,
+    segmentNum: Int,
+    easingFunction: EasingFunction,
+    amplifier: Double,
+    amplitude: Double,
+): List<ArcNote> {
+    val result = mutableListOf<ArcNote>()
+
+    var resizedAmplifier = Random.nextDouble(-amplitude, amplitude) + amplifier
+
+    val cuttingSeq = getRandomSeq(startTiming, endTiming, segmentNum)
+    cuttingSeq.add(0, startTiming)
+    cuttingSeq.add(endTiming)
+
+    var curPos = startPos
+    var curEndPos = balancePos(startPos, endPos, curPos, 1.0 / segmentNum, easingFunction, resizedAmplifier)
+
+    for (idx in (0..segmentNum)) {
+        val progress = (idx + 1).toDouble() / segmentNum
+        resizedAmplifier = Random.nextDouble(-amplitude, amplitude) + amplifier
+        result.add(
+            ArcNote(
+                cuttingSeq[idx] + if (Random.nextDouble() < 0.2) 0 else Random.nextInt(
+                    max(((cuttingSeq[idx + 1] - cuttingSeq[idx]) / 2).toInt(), 1) * -1,
+                    max(((cuttingSeq[idx + 1] - cuttingSeq[idx]) / 2).toInt(), 1) * 1
+                ),
+                cuttingSeq[idx + 1],
+                curPos,
+                ArcNote.Type.S,
+                curEndPos,
+                ArcNote.Color.BLUE,
+                true
+            )
+        )
+        val tmpPos =
+            curPos.copy().offsetWith(Random.nextDouble(amplifier / -2, amplifier / 2), Random.nextDouble(amplifier / -2, amplifier / 2))
+        curPos = curEndPos.copy()
+        curEndPos = balancePos(startPos, endPos, tmpPos, progress, easingFunction, resizedAmplifier)
+    }
+
+    return result
+}
+
+private fun balancePos(
+    startPos: Position,
+    endPos: Position,
+    curPos: Position,
+    progress: Double,
+    easingFunction: EasingFunction,
+    amplifier: Double,
+): Position {
+    val easedPos = easePos(startPos, endPos, easingFunction, progress)
+
+    return curPos.apply {
+        val sgnY = (easedPos.y > curPos.y).let {
+            if (it) 1 else -1
+        }
+        val sgnX = (easedPos.x > curPos.x).let {
+            if (it) 1 else -1
+        }
+
+
+        y = max(
+            0.0,
+
+            y + sgnY * 2 * abs(easedPos.y - curPos.y)
+                    + Random.nextDouble(-amplifier / 2, amplifier / 2)
+
+        )
+        x = min(
+            1.5, max(
+                -0.5,
+
+                x + sgnX * 2 * abs(easedPos.x - curPos.x)
+                        + Random.nextDouble(-amplifier * 3, amplifier * 3)
+
+            )
+        )
+    }
+}
+
+private fun getRandomSeq(startTiming: Long, endTiming: Long, segmentNum: Int): MutableList<Long> {
+    val cuttingPoints = mutableListOf<Long>()
+    repeat(segmentNum) {
+        var rand: Long
+        do {
+            rand = Random.nextLong(startTiming + 1, endTiming)
+        } while (cuttingPoints.contains(rand))
+        cuttingPoints.add(rand)
+    }
+    cuttingPoints.sort()
+    return cuttingPoints
 }
